@@ -4527,7 +4527,7 @@ A85EncodeBytes(interp, bytesPtr, numBytes, ctxPtr)
                                  * is the last set in the run. */
     A85EncodeContext *ctxPtr;	/* the encoding context */
 {
-    long int word = 0;
+    unsigned long int word = 0;
     int i;
     char toEmit[5];
 
@@ -4543,33 +4543,15 @@ A85EncodeBytes(interp, bytesPtr, numBytes, ctxPtr)
     if (word == 0) {
         A85EmitChar(interp, 'z', ctxPtr);
     }  else {
-        int tmp = 0;
-
-        if (word < 0) {
-            /* Because some don't support unsigned long */
-            tmp = 32;
-            word = word - (long)(85L * 85 * 85 * 85 * 32);
-        }
-        if (word < 0) {
-            tmp = 64;
-            word = word - (long)(85L * 85 * 85 * 85 * 32);
-        }
-
         /*
          * we emit from least significant to most significant char, so that
          * the 0 chars from an incomplete 4-tuple are the last ones in the
          * sequence and can be omitted (for the last 4-tuple in the array)
          */
-
-        toEmit[4] = EN((word / (long)(85L * 85 * 85 * 85)) + tmp);
-        word %= (long)(85L * 85 * 85 * 85);
-        toEmit[3] = EN(word / (85L * 85 * 85));
-        word %= (85L * 85 * 85);
-        toEmit[2] = EN(word / (85L * 85));
-        word %= (85L * 85);
-        toEmit[1] = EN(word / 85);
-        word %= 85;
-        toEmit[0] = EN(word);
+        for (i=0 ; i < 5 ; i++) {
+            toEmit[i] = EN(word % 85UL);
+            word /= 85UL;
+        }
 
         /*
          * Emit only 'numBytes+1' chars, since the extra ones are all '!'
